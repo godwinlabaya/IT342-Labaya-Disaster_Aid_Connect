@@ -27,6 +27,12 @@ export default function Login() {
   };
 
   return (
+    <div className="auth-container">
+      <div className="auth-left">
+        <h1>LABORATORY ACTIVITY</h1>
+        <p>
+          Secure authentication platform built using React and Spring Boot.
+          Please login to continue.
     <div className="login-container">
       
       {/* LEFT SIDE */}

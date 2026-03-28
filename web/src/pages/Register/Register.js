@@ -5,7 +5,8 @@ import { Link, useNavigate } from "react-router-dom";
 
 export default function Register() {
   const [form, setForm] = useState({
-    username: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -22,6 +23,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // 1. Create account in Supabase Auth
     if (form.password !== form.confirmPassword) {
       alert("Passwords do not match");
       return;
@@ -30,86 +32,40 @@ export default function Register() {
     const { data, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
-      options: {
-        data: {
-          username: form.username,
-        },
-      },
     });
 
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    // 2. Insert into your custom users table
     if (data.user) {
       const { error: insertError } = await supabase.from("users").insert([
         {
-          id: data.user.id,
-          username: form.username,
-          security_question: form.securityQuestion,
-          security_answer: form.securityAnswer,
-          role: "user"
-        }
+          userID: data.user.id, // match auth user ID
+          email: form.email,
+          passwordHash: form.password, // ⚠️ plain text (for school only)
+          firstName: form.firstName,
+          lastName: form.lastName,
+        },
       ]);
 
       if (insertError) {
         alert(insertError.message);
+        return;
       }
     }
 
-    if (error) {
-      alert(error.message);
-    } else {
-      alert("Check your email for confirmation!");
-      navigate("/");
-    }
+    alert("Check your email for confirmation!");
+    navigate("/");
   };
 
   return (
-    <div className="register-container">
-
-      {/* LEFT PANEL */}
-      <div className="register-left">
-
-        <div className="brand">
-          <div className="logo-box"></div>
-          <h1>
-            <span className="blue">DISASTER</span>AIDCONNECT
-          </h1>
-        </div>
-
-        <h2>Transform Crisis Into Coordinated Action</h2>
-
-        <p className="description">
-          Connect communities, volunteers, and aid organizations in real time.
-          Disaster Aid Connect helps streamline relief efforts, allocate resources
-          efficiently, and support those affected when it matters most.
-        </p>
-
-        <div className="features">
-
-          <div className="feature">
-            <div className="icon-box"></div>
-            <div>
-              <h4>Coordinate Relief Efforts</h4>
-              <p>Manage requests, track aid distribution, and monitor response progress in one unified platform.</p>
-            </div>
-          </div>
-
-          <div className="feature">
-            <div className="icon-box"></div>
-            <div>
-              <h4>Connect Volunteers & Organizations</h4>
-              <p>Bring together certified responders, NGOs, and local volunteers to work seamlessly during emergencies.</p>
-            </div>
-          </div>
-
-          <div className="feature">
-            <div className="icon-box"></div>
-            <div>
-              <h4>Deliver Critical Resources</h4>
-              <p>Match supplies, shelter, and medical assistance with communities in urgent need.</p>
-            </div>
-          </div>
-
-        </div>
-
+    <div className="auth-container">
+      <div className="auth-left">
+        <h1>LABORATORY ACTIVITY</h1>
+        <p>Create your account to access the secure dashboard system.</p>
       </div>
 
       {/* RIGHT PANEL */}
@@ -121,72 +77,33 @@ export default function Register() {
           <p className="subtitle">Join DisasterAidConnect and start your journey</p>
 
           <form onSubmit={handleSubmit}>
-
-            <div>
-              <label>Username</label>
-              <input
-                name="username"
-                placeholder="Your name"
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div>
-              <label>Email</label>
-              <input
-                name="email"
-                type="email"
-                placeholder="you@email.com"
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div>
-              <label>Password</label>
-              <input
-                name="password"
-                type="password"
-                placeholder="••••••••••••"
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div>
-              <label>Confirm Password</label>
-              <input
-                name="confirmPassword"
-                type="password"
-                placeholder="••••••••••••"
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div>
-              <label>Security Question (for password recovery)</label>
-              <input
-                name="securityQuestion"
-                placeholder="What is your mother's maiden name?"
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div>
-              <label>Answer to Security Question</label>
-              <input
-                name="securityAnswer"
-                placeholder="Your answer (remember this)"
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <button type="submit">SIGN UP</button>
-
+            <input
+              name="firstName"
+              placeholder="First Name"
+              onChange={handleChange}
+              required
+            />
+            <input
+              name="lastName"
+              placeholder="Last Name"
+              onChange={handleChange}
+              required
+            />
+            <input
+              name="email"
+              type="email"
+              placeholder="Email"
+              onChange={handleChange}
+              required
+            />
+            <input
+              name="password"
+              type="password"
+              placeholder="Password"
+              onChange={handleChange}
+              required
+            />
+            <button type="submit">Register</button>
           </form>
 
           <div className="divider">
