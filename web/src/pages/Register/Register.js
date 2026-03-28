@@ -5,10 +5,12 @@ import { Link, useNavigate } from "react-router-dom";
 
 export default function Register() {
   const [form, setForm] = useState({
-    username: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
   });
+
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -18,45 +20,44 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // 1. Create account in Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
-      options: {
-        data: {
-          username: form.username,
-        },
-      },
     });
 
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    // 2. Insert into your custom users table
     if (data.user) {
       const { error: insertError } = await supabase.from("users").insert([
         {
-          id: data.user.id,
-          full_name: form.username,
-          role: "user"
-        }
+          userID: data.user.id, // match auth user ID
+          email: form.email,
+          passwordHash: form.password, // ⚠️ plain text (for school only)
+          firstName: form.firstName,
+          lastName: form.lastName,
+        },
       ]);
 
       if (insertError) {
         alert(insertError.message);
+        return;
       }
     }
 
-    if (error) {
-      alert(error.message);
-    } else {
-      alert("Check your email for confirmation!");
-      navigate("/");
-    }
+    alert("Check your email for confirmation!");
+    navigate("/");
   };
 
   return (
     <div className="auth-container">
       <div className="auth-left">
-        <h1>IT342</h1>
-        <p>
-          Create your account to access the secure dashboard system.
-        </p>
+        <h1>LABORATORY ACTIVITY</h1>
+        <p>Create your account to access the secure dashboard system.</p>
       </div>
 
       <div className="auth-right">
@@ -65,8 +66,14 @@ export default function Register() {
 
           <form onSubmit={handleSubmit}>
             <input
-              name="username"
-              placeholder="Username"
+              name="firstName"
+              placeholder="First Name"
+              onChange={handleChange}
+              required
+            />
+            <input
+              name="lastName"
+              placeholder="Last Name"
               onChange={handleChange}
               required
             />
